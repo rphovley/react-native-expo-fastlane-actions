@@ -1,0 +1,98 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+cert_id = "392N373237"
+provision_profile_file_name = "AppStore_com.qsciences.fastlane-test"
+team_id = CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
+
+before_all do
+  # ensure_git_branch(branch: 'deployment_automation')
+  # ensure_git_status_clean
+  # git_pull
+  puts "TOKEN"
+  puts ENV.inspect
+end
+
+platform :ios do
+  # iOS Lanes
+
+  desc 'Fetch certificates and provisioning profiles'
+  lane :convert_to_DerP12 do
+    sh("pwd")
+    sh("
+      openssl x509 -in ./certs_tmp/#{cert_id}.cer -inform DER -out ./certs_tmp/#{cert_id}.pem -outform PEM
+    ") # convert .cer to PEM format
+    sh("
+      openssl pkcs12 -export -out ./certs_tmp/iosKeyStore.p12 -inkey ./certs_tmp/#{cert_id}.p12 -in ./certs_tmp/#{cert_id}.pem -password pass:#{ENV['MATCH_PASSWORD']}
+    ")
+  end
+  lane :certificates do
+    match(type: "appstore", output_path: 'fastlane/certs_tmp', profile_name: "fastlane-test-profile")
+    convert_to_DerP12
+    # get_certificates(platform: 'ios', )
+    # match(app_identifier: 'com.qsciences.q-connect-pro-staging', type: 'development', readonly: true)
+    # match(app_identifier: 'com.qsciences.ambassadorResourcesQ', type: 'appstore', readonly: true)
+  end
+  desc 'Build the iOS application.'
+  lane :build do
+    certificates
+    Dir.chdir("..") do
+      sh("
+        EXPO_IOS_DIST_P12_PASSWORD=#{ENV['MATCH_PASSWORD']} turtle build:ios \\
+          --team-id #{team_id} \\
+          --dist-p12-path ./fastlane/certs_tmp/iosKeyStore.p12 \\
+          --provisioning-profile-path ./fastlane/certs_tmp/#{provision_profile_file_name}.mobileprovision
+      ")
+    end
+  end
+  desc 'Ship to Testflight.'
+  lane :beta do
+    build
+    # pilot
+    # commit_version_bump(message: 'Bump build', xcodeproj: './ios/name.xcodeproj')
+    # push_to_git_remote
+  end
+
+end
+
+platform :android do
+  # Android Lanes
+  desc 'Build the Android application.'
+  private_lane :build do
+    gradle(task: 'clean', project_dir: 'android/')
+    gradle(task: 'assemble', build_type: 'Release', project_dir: 'android/')
+  end
+  desc 'Ship to Playstore Beta.'
+  lane :beta do
+    build
+    supply(track: 'beta', track_promote_to: 'beta')
+    git_commit(path: ['./android/gradle.properties'], message: 'Bump versionCode')
+    push_to_git_remote
+  end
+end
+
+
+
+
+
+
+
+# desc 'Ship to Testflight.'
+# lane :beta do
+#   build
+#   pilot
+#   commit_version_bump(message: 'Bump build', xcodeproj: './ios/name.xcodeproj')
+#   push_to_git_remote
+# end
+

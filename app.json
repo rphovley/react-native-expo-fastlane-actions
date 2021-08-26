@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "react-native-expo-template",
+    "slug": "react-native-expo-template",
+    "version": "1.0.0",
+    "owner": "qsiholdingcompanyinc",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "bundleIdentifier": "com.qsciences.fastlane-test"
+    }
+  },
+  "name": "react-native-expo-template"
+}
