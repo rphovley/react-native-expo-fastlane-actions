@@ -19,16 +19,17 @@ For more precise directions see the doc links (most directions here are for mac)
 2. Create Apple Store App (must have an Apple organization created)
 3. Use [.sample.env](./.sample.env) as template for required `.env` file in project  
     a. [MATCH_GIT_BASIC_AUTHORIZATION](https://docs.fastlane.tools/actions/match/) under `Git Storage on GitHub`.  
-    b. `MATCH_PASSWORD` is the password you will generate to protect the iOS private. Save this to a password manager and add to the `.env`
+    b. `MATCH_PASSWORD` is the password you will generate to protect the iOS private. Save this to a password manager and add to the `.env`  
+    c. `EXPO_USERNAME` and `EXPO_PASSWORD` are the login credentials you'd like to use when using Turtle CLI for building the IPA. Both should go in `.env`
 4. Replace Matchfile values [fastlane/Matchfile](./fastlane/Matchfile)  
     a. git_url  
     b. app_identifier  
     c. username
 5. Replace Appfile values [fastlane/Appfile](./fastlane/Appfile)  
-    a. app_identifier
-    b. apple_id
-    c. itc_team_id
-    d. team_id
+    a. app_identifier  
+    b. apple_id  
+    c. itc_team_id  
+    d. team_id  
 
 5. Running and testing iOS commands
     1. Test app store certificate for your provided Matchfile credentials
